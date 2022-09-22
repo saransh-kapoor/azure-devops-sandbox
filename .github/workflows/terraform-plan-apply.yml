@@ -87,7 +87,7 @@ jobs:
         run: terraform -chdir=${{ inputs.TF_WORKING_DIR }} apply -refresh-only -auto-approve
       - name: "terraform plan"
         run: |
-          terraform -chdir=${{ inputs.TF_WORKING_DIR }} -no-color -detailed-exitcode -out=plan.tfplan
+          terraform -chdir=${{ inputs.TF_WORKING_DIR }} plan -no-color -detailed-exitcode -out=plan.tfplan
       - name: "terraform apply"
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
