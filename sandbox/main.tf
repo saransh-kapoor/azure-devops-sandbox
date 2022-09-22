@@ -14,7 +14,7 @@ locals {
 terraform {
   backend "azurerm" {
     subscription_id      = "18c8d488-9b69-4619-ab58-724f279fe48e" // Sandbox
-    resource_group_name  = "terraform-rg"
+    resource_group_name  = "rg-terraform"
     storage_account_name = "btfsandbox12"
     container_name       = "tfstate"
     key                  = "sandbox/sandbox.tfstate"
