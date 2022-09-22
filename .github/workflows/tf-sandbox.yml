@@ -1,0 +1,24 @@
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "sandbox/*"
+  push:
+    branches:
+      - master
+    paths:
+      - "sandbox/*"
+
+name: dev-acr
+
+jobs:
+  terraform:
+    uses: sukhdeepsingh1/azure-devops-sandbox/.github/workflows/terraform-plan-apply.yml@master
+    with:
+      TF_WORKING_DIR: "./sandbox"
+      TF_VERSION: "1.2.8"
+    secrets:
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
