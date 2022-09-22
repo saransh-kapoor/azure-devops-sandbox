@@ -8,15 +8,12 @@ locals {
     billingUnit        = "123456"
     creationSource     = "terraform"
   }
-  region      = "norwayeast"
-  instance_id = "1"
-  rg-common   = "${local.env}-rg-prodapp-common"
-  rg-infra    = "${local.env}-rg-prodapp-infra"
+  region = "norwayeast"
 }
 
 terraform {
   backend "azurerm" {
-    subscription_id      = "18c8d488-9b69-4619-ab58-724f279fe48e" // ProdApp-55493-DEV
+    subscription_id      = "18c8d488-9b69-4619-ab58-724f279fe48e" // Sandbox
     resource_group_name  = "terraform-rg"
     storage_account_name = "btfsandbox12"
     container_name       = "tfstate"
@@ -32,13 +29,14 @@ terraform {
 }
 
 provider "azurerm" {
-  subscription_id = "18c8d488-9b69-4619-ab58-724f279fe48e" // ProdApp Dev Subscription
+  subscription_id = "18c8d488-9b69-4619-ab58-724f279fe48e" // Sandbox
   features {}
 }
 
 data "azurerm_client_config" "current" {
 }
 
-data "azurerm_resource_group" "sandbox" {
-  name = "${local.env}-rg-sandbox"
+resource "azurerm_resource_group" "sandbox" {
+  name     = "${local.env}-rg-sandbox"
+  location = local.region
 }
