@@ -9,11 +9,11 @@ on:
     paths:
       - "sandbox/*"
 
-name: dev-acr
+name: dev-sandbox
 
 jobs:
   terraform:
-    uses: sukhdeepsingh1/azure-devops-sandbox/.github/workflows/terraform-plan-apply.yml@master
+    uses: sukhdeepsingh1/azure-devops-sandbox/.github/workflows/terraform-plan-apply.yml@main
     with:
       TF_WORKING_DIR: "./sandbox"
       TF_VERSION: "1.2.8"

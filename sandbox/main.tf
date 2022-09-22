@@ -40,3 +40,4 @@ resource "azurerm_resource_group" "sandbox" {
   name     = "${local.env}-rg-sandbox"
   location = local.region
 }
+
