@@ -1,0 +1,94 @@
+name: "z Internal - Reusable terraform plan apply workflow"
+
+on:
+  workflow_call:
+    inputs:
+      TF_WORKING_DIR:
+        required: true
+        type: string
+      RUNS_ON:
+        required: false
+        type: string
+        default: "ubuntu-latest"
+      TF_VERSION:
+        required: false
+        type: string
+        default: "1.2.8"
+      TF_CLI_ARGS:
+        required: false
+        type: string
+        default: "-no-color"
+      TF_CLI_ARGS_plan:
+        required: false
+        type: string
+        default: "-lock-timeout=2m"
+      TF_CLI_ARGS_apply:
+        required: false
+        type: string
+        default: "-lock-timeout=2m"
+      TF_SKIP_REFRESH:
+        required: false
+        type: boolean
+        default: false
+      TF_LOG:
+        required: false
+        type: string
+    secrets:
+      ARM_CLIENT_ID:
+        required: true
+      ARM_CLIENT_SECRET:
+        required: true
+      ARM_SUBSCRIPTION_ID:
+        required: true
+      ARM_TENANT_ID:
+        required: true
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  TF_CLI_ARGS: ${{ inputs.TF_CLI_ARGS }}
+  TF_CLI_ARGS_plan: ${{ inputs.TF_CLI_ARGS_plan }}
+  TF_CLI_ARGS_apply: ${{ inputs.TF_CLI_ARGS_apply }}
+  TF_LOG: ${{ inputs.TF_LOG }}
+  TF_IN_AUTOMATION: "true"
+
+jobs:
+  plan-comment-apply-notify:
+    runs-on: ${{ inputs.RUNS_ON }}
+    steps:
+      - name: "checkout pull request"
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v3
+      - name: "checkout master"
+        # Checkout latest master when ref is master.
+        # This will override checking out the revision that triggered the
+        # workflow originally. Should mitigate re-runs of old workflows
+        # potentially deleting terraform resources added later.
+        if: github.ref == 'refs/heads/master'
+        uses: actions/checkout@v3
+        with:
+          ref: master
+      - name: "terraform setup"
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ inputs.TF_VERSION }}
+          terraform_wrapper: false
+      - name: "terraform fmt check"
+        if: github.event_name == 'pull_request'
+        run: terraform -chdir=${{ inputs.TF_WORKING_DIR }} fmt -check -diff
+      - name: "terraform init"
+        run: terraform -chdir=${{ inputs.TF_WORKING_DIR }} init
+      - name: "terraform validate"
+        run: terraform -chdir=${{ inputs.TF_WORKING_DIR }} validate
+      - name: "terraform apply -refresh-only"
+        if: github.ref == 'refs/heads/master' && inputs.TF_SKIP_REFRESH == false
+        run: terraform -chdir=${{ inputs.TF_WORKING_DIR }} apply -refresh-only -auto-approve
+      - name: "terraform plan"
+        run: |
+          terraform -chdir=${{ inputs.TF_WORKING_DIR }} -no-color -detailed-exitcode -out=plan.tfplan
+      - name: "terraform apply"
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          terraform -chdir=${{ inputs.TF_WORKING_DIR }} apply -no-color plan.tfplan
