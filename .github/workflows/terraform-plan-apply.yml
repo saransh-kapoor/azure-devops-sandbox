@@ -61,15 +61,15 @@ jobs:
       - name: "checkout pull request"
         if: github.event_name == 'pull_request'
         uses: actions/checkout@v3
-      - name: "checkout master"
-        # Checkout latest master when ref is master.
+      - name: "checkout main"
+        # Checkout latest main when ref is main.
         # This will override checking out the revision that triggered the
         # workflow originally. Should mitigate re-runs of old workflows
         # potentially deleting terraform resources added later.
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/main'
         uses: actions/checkout@v3
         with:
-          ref: master
+          ref: main
       - name: "terraform setup"
         uses: hashicorp/setup-terraform@v2
         with:
@@ -83,12 +83,12 @@ jobs:
       - name: "terraform validate"
         run: terraform -chdir=${{ inputs.TF_WORKING_DIR }} validate
       - name: "terraform apply -refresh-only"
-        if: github.ref == 'refs/heads/master' && inputs.TF_SKIP_REFRESH == false
+        if: github.ref == 'refs/heads/main' && inputs.TF_SKIP_REFRESH == false
         run: terraform -chdir=${{ inputs.TF_WORKING_DIR }} apply -refresh-only -auto-approve
       - name: "terraform plan"
         run: |
           terraform -chdir=${{ inputs.TF_WORKING_DIR }} -no-color -detailed-exitcode -out=plan.tfplan
       - name: "terraform apply"
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: |
           terraform -chdir=${{ inputs.TF_WORKING_DIR }} apply -no-color plan.tfplan

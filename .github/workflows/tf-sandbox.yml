@@ -5,7 +5,7 @@ on:
       - "sandbox/*"
   push:
     branches:
-      - master
+      - main
     paths:
       - "sandbox/*"
 
