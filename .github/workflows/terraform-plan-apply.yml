@@ -87,7 +87,16 @@ jobs:
         run: terraform -chdir=${{ inputs.TF_WORKING_DIR }} apply -refresh-only -auto-approve
       - name: "terraform plan"
         run: |
-          terraform -chdir=${{ inputs.TF_WORKING_DIR }} plan -no-color -detailed-exitcode -out=plan.tfplan
+          terraform -chdir=${{ inputs.TF_WORKING_DIR }} plan -no-color -detailed-exitcode -out=plan.tfplan || TF_EXIT_CODE=$?
+
+          if [ "$TF_EXIT_CODE" = "0" ]; then
+            echo "TF_PLAN_HAS_CHANGES=false" >> $GITHUB_ENV
+          elif [ "$TF_EXIT_CODE" = "2" ]; then
+            echo "TF_PLAN_HAS_CHANGES=true" >> $GITHUB_ENV
+          else
+            echo "Failed with code $TF_EXIT_CODE"
+            exit $TF_EXIT_CODE
+          fi
       - name: "terraform apply"
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
